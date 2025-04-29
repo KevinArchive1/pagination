@@ -1,3 +1,8 @@
+html {
+  padding: 0;
+  margin: 0;
+}
+
 .search {
     display: flex;
     flex-direction: column;
@@ -30,15 +35,14 @@
     flex-wrap: wrap;
     border: black 2px solid;
     gap: 20px;
-    padding: 20px;
   }
 
   .bookHolder {
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 450px;
-    width: 300px;
+    height: 600px;
+    width: 350px;
     border: 2px dotted white;
     overflow: hidden;
     border-radius: 10px;
@@ -63,22 +67,61 @@
   }
 
   .bookTitle {  
-    padding: 10px;
-    height: 60px;
-    font-size: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5px;
+    height: 150px;
+    width: 100%;
+    border-top: skyblue dotted 3px;
+    gap: 6px;
+    overflow-x: hidden;
   }
+
+  .bookTitle::-webkit-scrollbar {
+    display: none;
+  }
+
+  .bookTitle h1{
+    font-size: 2rem;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+  
+.bookTitle h2 {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
 
 
   button {
     background-color: skyblue;
     font-size: 1rem;
+    padding: 10px;
+    border-radius: 1rem;
   }
   
   input {
     font-size: 1rem;
   }
 
+.upload_label {
+  display: flex;
+  align-items: center;
+  background-color: skyblue;
+  color:  black;
+  font-weight: bold;
+  padding: 6px;
+  border-radius: 1rem;
+}
 
-  .p-4 {
-    display: flex;
-  }
+.pagination {
+  width: 100%;
+  border-top: skyblue solid 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80px;
+}

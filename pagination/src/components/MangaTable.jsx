@@ -1,53 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import "./manga.css";
+import { FiUploadCloud } from 'react-icons/fi';
 
 function MangaTable() {
     const [mangas, setMangas] = useState([]);
     const [page, setPage] = useState(1);
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState('bleach');
     const [order, setOrder] = useState('asc');
-    const mangasPerPage = 10;
-
+    const [file, setFile] = useState(null);
+    const mangasPerPage = 30;
 
     useEffect(() => {
-        fetch(`https://kitsu.io/api/edge/manga?page[limit]=20&page[offset]=${(page - 1) * 20}`)
-            .then(res => res.json())
+        fetch(`https://openlibrary.org/search.json?q=${search}&page=${page}`)
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
             .then(data => {
-                if (data.data) {
-                    setMangas(data.data);
+                if (data.docs) {
+                    setMangas(data.docs);
                 } else {
-                    setMangas([]); // fallback to empty if error
+                    setMangas([]);
                 }
             })
             .catch(error => {
                 console.error("Error fetching mangas:", error);
-                setMangas([]); // fallback to empty if network error
+                setMangas([]);
             });
-    }, [page]);
-    
+    }, [search, page]);
 
-    // Filter and sort the mangas based on search and order
-    const filteredMangas = mangas.filter(manga => {
-        const title = manga.attributes.titles.en_jp || manga.attributes.titles.en || '';
-        return title.toLowerCase().includes(search.toLowerCase());
-    }).sort((a, b) => {
-        const aTitle = (a.attributes.titles.en_jp || a.attributes.titles.en || '').toLowerCase();
-        const bTitle = (b.attributes.titles.en_jp || b.attributes.titles.en || '').toLowerCase();
+    const handleUpload = (e) => {
+        const uploadedFile = e.target.files[0];
+        if (uploadedFile) {
+            setFile(uploadedFile);
+            alert(`Uploaded file: ${uploadedFile.name}`);
+        }
+    };
+
+    const sortedMangas = mangas.sort((a, b) => {
+        const aTitle = (a.title || '').toLowerCase();
+        const bTitle = (b.title || '').toLowerCase();
 
         if (order === 'asc') return aTitle.localeCompare(bTitle);
         return bTitle.localeCompare(aTitle);
     });
 
     const startIndex = (page - 1) * mangasPerPage;
-    const paginatedMangas = filteredMangas.slice(startIndex, startIndex + mangasPerPage);
-    const totalPages = Math.ceil(filteredMangas.length / mangasPerPage);
+    const paginatedMangas = sortedMangas.slice(startIndex, startIndex + mangasPerPage);
+    const totalPages = Math.ceil(mangas.length / mangasPerPage);
 
     return (
         <div className='Main_holder'>
+            {/* Search and Upload Section */}
             <div className='search'>
                 <input
                     type="text"
                     placeholder="Search..."
+                    value={search}
                     onChange={e => {
                         setSearch(e.target.value);
                         setPage(1);
@@ -57,32 +68,55 @@ function MangaTable() {
                 <button onClick={() => setOrder(order === 'asc' ? 'desc' : 'asc')}>
                     Toggle Order ({order})
                 </button>
+
+                <div className="upload_holder">
+                    <label className="upload_label">
+                        <FiUploadCloud size={30}  />
+                        Upload Image
+                        <input type="file" onChange={handleUpload} hidden />
+                    </label>
+                    {file && <p className="uploaded-file">Uploaded: {file.name}</p>}
+                </div>
             </div>
+
+            {/* Manga Cards Section */}
             <div className='holder'>
                 {paginatedMangas.map(manga => {
-                    const coverUrl = manga.attributes.posterImage?.small || '';
+                    const coverUrl = manga.cover_i
+                        ? `https://covers.openlibrary.org/b/id/${manga.cover_i}-M.jpg`
+                        : 'https://dummyimage.com/150x200/ccc/000.jpg&text=No+Image';
 
                     return (
-                        <div className='bookHolder' key={manga.id}>
+                        <div className='bookHolder' key={manga.key}>
                             <div className='bookImg'>
-                                <img src={coverUrl} alt={manga.attributes.titles.en_jp || manga.attributes.titles.en || 'No Title'} />
-                            </div>      
-                            <div className='bookTitle'>{manga.attributes.titles.en_jp || manga.attributes.titles.en || 'No Title'}</div>
-                        </div> 
+                                <img src={coverUrl} alt={manga.title || 'No Title'} />
+                            </div>
+                            <div className='bookTitle'>
+                                <h1>{manga.title || 'No Title'}</h1>
+                                <h2> {manga.author_name || "No Author"}</h2>
+                                <h2>{manga.first_publish_year || "N\A"}</h2>
+                                
+                            </div>
+                        </div>
                     );
                 })}
             </div>
-            <div>
-                <button onClick={() => setPage(p => Math.max(p - 1, 1))} disabled={page === 1}>
-                    Previous
-                </button>
-                <span> Page {page} of {totalPages} </span>
-                <button
-                    onClick={() => setPage(p => Math.min(p + 1, totalPages))}
-                    disabled={page === totalPages}
-                >
-                    Next
-                </button>
+
+            {/* Pagination Section */}
+            
+            <div className='pagination'>
+                <div>
+                    <button onClick={() => setPage(p => Math.max(p - 1, 1))} disabled={page === 1}>
+                        Previous
+                    </button>
+                    <span> Page {page} of {totalPages} </span>
+                    <button
+                        onClick={() => setPage(p => Math.min(p + 1, totalPages))}
+                        disabled={page === totalPages}
+                    >
+                        Next
+                    </button>
+                </div>
             </div>
         </div>
     );
